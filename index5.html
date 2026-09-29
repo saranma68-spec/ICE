@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมการศึกษา: นักสร้างแผนภูมิ ป.4</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for rendering the bar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Prompt for Thai characters -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+        }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row">
+        
+        <!-- Left Panel: Instructions and Data Table -->
+        <div class="bg-green-50 p-6 md:w-1/3 border-b md:border-b-0 md:border-r border-green-200">
+            <h1 class="text-3xl font-bold text-green-700 mb-4 text-center">📊 นักสร้างแผนภูมิ ป.4</h1>
+            <p class="text-gray-700 mb-6 text-sm">
+                ให้นักเรียนอ่านข้อมูลจากตารางด้านล่าง แล้วนำไปสร้าง <strong>"แผนภูมิแท่ง"</strong> ทางขวามือให้ถูกต้องนะคะ!
+            </p>
+
+            <div class="bg-white rounded-lg shadow-sm border border-green-100 overflow-hidden">
+                <div class="bg-green-500 text-white text-center py-2 font-semibold">
+                    ข้อมูล: ผลไม้ที่นักเรียนชั้น ป.4 ชื่นชอบ
+                </div>
+                <table class="w-full text-sm text-left text-gray-700">
+                    <thead class="text-xs text-gray-700 uppercase bg-green-100">
+                        <tr>
+                            <th scope="col" class="px-4 py-3">ชนิดผลไม้</th>
+                            <th scope="col" class="px-4 py-3 text-right">จำนวน (คน)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white border-b">
+                            <td class="px-4 py-2 font-medium text-gray-900">🍎 แอปเปิล</td>
+                            <td class="px-4 py-2 text-right">8</td>
+                        </tr>
+                        <tr class="bg-gray-50 border-b">
+                            <td class="px-4 py-2 font-medium text-gray-900">🍌 กล้วย</td>
+                            <td class="px-4 py-2 text-right">12</td>
+                        </tr>
+                        <tr class="bg-white border-b">
+                            <td class="px-4 py-2 font-medium text-gray-900">🍊 ส้ม</td>
+                            <td class="px-4 py-2 text-right">6</td>
+                        </tr>
+                        <tr class="bg-gray-50 border-b">
+                            <td class="px-4 py-2 font-medium text-gray-900">🍉 แตงโม</td>
+                            <td class="px-4 py-2 text-right">10</td>
+                        </tr>
+                        <tr class="bg-white">
+                            <td class="px-4 py-2 font-medium text-gray-900">🥭 มะม่วง</td>
+                            <td class="px-4 py-2 text-right">14</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Message Area -->
+            <div id="message-area" class="mt-6 p-4 rounded-lg hidden text-center font-medium"></div>
+        </div>
+
+        <!-- Right Panel: Chart Builder -->
+        <div class="p-6 md:w-2/3 flex flex-col relative" id="chart-builder-panel">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">พื้นที่สร้างแผนภูมิ</h2>
+            
+            <!-- Inputs for Titles -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อแผนภูมิ (Title):</label>
+                    <input type="text" id="chart-title" placeholder="เช่น แผนภูมิแสดง..." class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อแกน Y (แนวตั้ง):</label>
+                    <select id="y-axis-label" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="">-- เลือกชื่อแกน --</option>
+                        <option value="ชนิดผลไม้">ชนิดผลไม้</option>
+                        <option value="จำนวน (คน)">จำนวน (คน)</option>
+                        <option value="ร้อยละ">ร้อยละ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อแกน X (แนวนอน):</label>
+                    <select id="x-axis-label" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="">-- เลือกชื่อแกน --</option>
+                        <option value="ชนิดผลไม้">ชนิดผลไม้</option>
+                        <option value="จำนวน (คน)">จำนวน (คน)</option>
+                        <option value="เวลา (วัน)">เวลา (วัน)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Inputs for Data -->
+            <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">ระบุจำนวนสำหรับผลไม้แต่ละชนิด:</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    <div class="flex flex-col items-center">
+                        <label class="text-sm mb-1 text-gray-600">🍎 แอปเปิล</label>
+                        <input type="number" id="val-apple" min="0" max="20" class="w-full text-center border border-gray-300 rounded-md py-1 focus:ring-2 focus:ring-green-500" value="0">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <label class="text-sm mb-1 text-gray-600">🍌 กล้วย</label>
+                        <input type="number" id="val-banana" min="0" max="20" class="w-full text-center border border-gray-300 rounded-md py-1 focus:ring-2 focus:ring-green-500" value="0">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <label class="text-sm mb-1 text-gray-600">🍊 ส้ม</label>
+                        <input type="number" id="val-orange" min="0" max="20" class="w-full text-center border border-gray-300 rounded-md py-1 focus:ring-2 focus:ring-green-500" value="0">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <label class="text-sm mb-1 text-gray-600">🍉 แตงโม</label>
+                        <input type="number" id="val-watermelon" min="0" max="20" class="w-full text-center border border-gray-300 rounded-md py-1 focus:ring-2 focus:ring-green-500" value="0">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <label class="text-sm mb-1 text-gray-600">🥭 มะม่วง</label>
+                        <input type="number" id="val-mango" min="0" max="20" class="w-full text-center border border-gray-300 rounded-md py-1 focus:ring-2 focus:ring-green-500" value="0">
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button id="btn-preview" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        ดูตัวอย่างแผนภูมิ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chart Preview Area -->
+            <div class="flex-grow flex flex-col">
+                <div class="relative h-64 w-full border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center p-2 mb-4" id="chart-container">
+                    <span class="text-gray-400 text-sm" id="placeholder-text">ตัวอย่างแผนภูมิจะแสดงที่นี่</span>
+                    <canvas id="myChart" class="hidden"></canvas>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-between items-center mt-auto">
+                    <button id="btn-reset" class="text-gray-500 hover:text-red-500 text-sm font-medium transition-colors underline">
+                        เริ่มใหม่
+                    </button>
+                    <button id="btn-submit" class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full font-bold text-lg transition-transform transform hover:scale-105 shadow-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        ส่งคำตอบ
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Correct Answers
+            const correctData = {
+                titleKeywords: ["ผลไม้", "ป.4", "ชื่นชอบ"], // Title should contain some of these
+                yAxis: "จำนวน (คน)",
+                xAxis: "ชนิดผลไม้",
+                values: {
+                    apple: 8,
+                    banana: 12,
+                    orange: 6,
+                    watermelon: 10,
+                    mango: 14
+                }
+            };
+
+            // DOM Elements
+            const titleInput = document.getElementById('chart-title');
+            const yAxisSelect = document.getElementById('y-axis-label');
+            const xAxisSelect = document.getElementById('x-axis-label');
+            
+            const valApple = document.getElementById('val-apple');
+            const valBanana = document.getElementById('val-banana');
+            const valOrange = document.getElementById('val-orange');
+            const valWatermelon = document.getElementById('val-watermelon');
+            const valMango = document.getElementById('val-mango');
+
+            const btnPreview = document.getElementById('btn-preview');
+            const btnSubmit = document.getElementById('btn-submit');
+            const btnReset = document.getElementById('btn-reset');
+
+            const ctx = document.getElementById('myChart');
+            const placeholderText = document.getElementById('placeholder-text');
+            const messageArea = document.getElementById('message-area');
+            const chartBuilderPanel = document.getElementById('chart-builder-panel');
+
+            let chartInstance = null;
+
+            function renderChart() {
+                const title = titleInput.value.trim();
+                const yAxis = yAxisSelect.value;
+                const xAxis = xAxisSelect.value;
+                
+                const dataValues = [
+                    parseInt(valApple.value) || 0,
+                    parseInt(valBanana.value) || 0,
+                    parseInt(valOrange.value) || 0,
+                    parseInt(valWatermelon.value) || 0,
+                    parseInt(valMango.value) || 0
+                ];
+
+                // Check if any data is provided to show chart
+                if (dataValues.every(v => v === 0) && !title && !yAxis && !xAxis) {
+                    // Nothing to show yet
+                    return;
+                }
+
+                placeholderText.classList.add('hidden');
+                ctx.classList.remove('hidden');
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['แอปเปิล', 'กล้วย', 'ส้ม', 'แตงโม', 'มะม่วง'],
+                        datasets: [{
+                            label: 'จำนวนนักเรียน',
+                            data: dataValues,
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.7)',  // Red
+                                'rgba(234, 179, 8, 0.7)',  // Yellow
+                                'rgba(249, 115, 22, 0.7)', // Orange
+                                'rgba(34, 197, 94, 0.7)',  // Green
+                                'rgba(234, 179, 8, 0.9)'   // Yellow-orange
+                            ],
+                            borderColor: [
+                                'rgb(239, 68, 68)',
+                                'rgb(234, 179, 8)',
+                                'rgb(249, 115, 22)',
+                                'rgb(34, 197, 94)',
+                                'rgb(217, 119, 6)'
+                            ],
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: title || '(ยังไม่ได้ตั้งชื่อแผนภูมิ)',
+                                font: {
+                                    family: "'Prompt', sans-serif",
+                                    size: 16,
+                                    weight: 'bold'
+                                },
+                                color: '#1f2937'
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 16, // Fixed max for this exercise
+                                title: {
+                                    display: true,
+                                    text: yAxis || '(แกน Y)',
+                                    font: { family: "'Prompt', sans-serif" }
+                                },
+                                ticks: {
+                                    stepSize: 2
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: xAxis || '(แกน X)',
+                                    font: { family: "'Prompt', sans-serif" }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 500
+                        }
+                    }
+                });
+            }
+
+            function checkAnswer() {
+                const title = titleInput.value.trim();
+                const yAxis = yAxisSelect.value;
+                const xAxis = xAxisSelect.value;
+                
+                const apple = parseInt(valApple.value) || 0;
+                const banana = parseInt(valBanana.value) || 0;
+                const orange = parseInt(valOrange.value) || 0;
+                const watermelon = parseInt(valWatermelon.value) || 0;
+                const mango = parseInt(valMango.value) || 0;
+
+                let errors = [];
+
+                // Check Title (Basic check if it's not empty)
+                if (title === "") {
+                    errors.push("อย่าลืมตั้งชื่อแผนภูมิด้วยนะ");
+                }
+
+                // Check Axes
+                if (yAxis !== correctData.yAxis) {
+                    errors.push("เลือกชื่อแกน Y (แนวตั้ง) ไม่ถูกต้อง แกนนี้ควรบอกอะไร?");
+                }
+                if (xAxis !== correctData.xAxis) {
+                    errors.push("เลือกชื่อแกน X (แนวนอน) ไม่ถูกต้อง แกนนี้ควรบอกอะไร?");
+                }
+
+                // Check Values
+                let wrongValues = false;
+                if (apple !== correctData.values.apple) wrongValues = true;
+                if (banana !== correctData.values.banana) wrongValues = true;
+                if (orange !== correctData.values.orange) wrongValues = true;
+                if (watermelon !== correctData.values.watermelon) wrongValues = true;
+                if (mango !== correctData.values.mango) wrongValues = true;
+
+                if (wrongValues) {
+                    errors.push("ใส่จำนวนข้อมูลผลไม้บางชนิดยังไม่ตรงกับตารางนะ ลองเช็คดูอีกที");
+                }
+
+                // Render chart with current values before showing result
+                renderChart();
+
+                messageArea.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+                
+                if (errors.length === 0) {
+                    // Success!
+                    messageArea.classList.add('bg-green-100', 'text-green-800');
+                    messageArea.innerHTML = `
+                        <div class="text-xl mb-2">🎉 ยอดเยี่ยมมาก! 🎉</div>
+                        <p>หนูสร้างแผนภูมิแท่งได้ถูกต้องสมบูรณ์แบบเลย</p>
+                    `;
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = 'สำเร็จแล้ว! ✨';
+                    btnSubmit.classList.replace('bg-green-500', 'bg-gray-400');
+                    btnSubmit.classList.replace('hover:bg-green-600', 'hover:bg-gray-400');
+                    
+                    // Add some confetti effect
+                    createConfetti();
+                } else {
+                    // Fail
+                    messageArea.classList.add('bg-red-100', 'text-red-800');
+                    let errorHtml = '<div class="text-lg font-bold mb-2">อ๊ะ! ยังมีจุดที่ต้องแก้ไขนะ:</div><ul class="text-left list-disc list-inside text-sm">';
+                    errors.forEach(err => {
+                        errorHtml += `<li>${err}</li>`;
+                    });
+                    errorHtml += '</ul>';
+                    messageArea.innerHTML = errorHtml;
+                }
+            }
+
+            function resetForm() {
+                titleInput.value = '';
+                yAxisSelect.value = '';
+                xAxisSelect.value = '';
+                valApple.value = '0';
+                valBanana.value = '0';
+                valOrange.value = '0';
+                valWatermelon.value = '0';
+                valMango.value = '0';
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                
+                placeholderText.classList.remove('hidden');
+                ctx.classList.add('hidden');
+                
+                messageArea.classList.add('hidden');
+                
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `
+                    ส่งคำตอบ
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                `;
+                btnSubmit.classList.replace('bg-gray-400', 'bg-green-500');
+                btnSubmit.classList.replace('hover:bg-gray-400', 'hover:bg-green-600');
+            }
+
+            function createConfetti() {
+                const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'];
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.classList.add('confetti');
+                        
+                        // Random properties
+                        const color = colors[Math.floor(Math.random() * colors.length)];
+                        const left = Math.random() * 100 + 'vw';
+                        const size = Math.random() * 10 + 5 + 'px';
+                        const duration = Math.random() * 2 + 1 + 's';
+                        
+                        confetti.style.backgroundColor = color;
+                        confetti.style.left = left;
+                        confetti.style.width = size;
+                        confetti.style.height = size;
+                        confetti.style.top = '-20px';
+                        confetti.style.animationDuration = duration;
+                        
+                        document.body.appendChild(confetti);
+                        
+                        // Remove after animation
+                        setTimeout(() => {
+                            confetti.remove();
+                        }, parseFloat(duration) * 1000);
+                    }, i * 50);
+                }
+            }
+
+            // Event Listeners
+            btnPreview.addEventListener('click', renderChart);
+            btnSubmit.addEventListener('click', checkAnswer);
+            btnReset.addEventListener('click', resetForm);
+
+            // Optional: Auto-update chart on input change (can be too noisy for kids, so we keep 'Preview' button)
+            // But we can add it for a smoother experience if preferred
+            const inputs = [titleInput, yAxisSelect, xAxisSelect, valApple, valBanana, valOrange, valWatermelon, valMango];
+            inputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    // Clear error message when user starts modifying again
+                    if(!btnSubmit.disabled){
+                        messageArea.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
